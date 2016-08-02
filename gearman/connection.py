@@ -5,6 +5,7 @@ import socket
 import ssl
 import struct
 import time
+import errno
 
 from gearman.errors import ConnectionError, ProtocolError, ServerUnavailable
 from gearman.constants import DEFAULT_GEARMAN_PORT, _DEBUG_MODE_
@@ -173,6 +174,10 @@ class GearmanConnection(object):
                 else:
                     self.throw_exception(exception=e)
             except socket.error, socket_exception:
+                if (type(socket_exception.args) is tuple) \
+                        and (len(socket_exception.args) > 0) \
+                        and (socket_exception.args[0] == errno.EAGAIN):
+                    break
                 self.throw_exception(exception=socket_exception)
 
             if len(recv_buffer) == 0:
@@ -248,6 +253,10 @@ class GearmanConnection(object):
                 else:
                     self.throw_exception(exception=e)
             except socket.error, socket_exception:
+                if (type(socket_exception.args) is tuple) \
+                        and (len(socket_exception.args) > 0) \
+                        and (socket_exception.args[0] == errno.EAGAIN):
+                    break
                 self.throw_exception(exception=socket_exception)
 
             if bytes_sent == 0:
